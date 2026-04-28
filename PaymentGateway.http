@@ -1,0 +1,67 @@
+@baseUrl = https://localhost:7092
+@apiKey = merchant-one-api-key-dev
+
+### ============================================================
+### POST /api/v1/payments — Process a Payment
+### ============================================================
+
+### 1. Authorized payment (card ending in 7 → odd → authorized)
+POST {{baseUrl}}/api/v1/Payments
+Content-Type: application/json
+X-API-Key: {{apiKey}}
+Idempotency-Key: {{$guid}}
+
+{
+  "cardNumber": "2222405343248877",
+  "expiryMonth": 4,
+  "expiryYear": 2027,
+  "currency": "GBP",
+  "amount": 100,
+  "cvv": "123"
+}
+
+### 2. Declined payment (card ending in 2 → even → declined)
+POST {{baseUrl}}/api/v1/Payments
+Content-Type: application/json
+X-API-Key: {{apiKey}}
+Idempotency-Key: {{$guid}}
+
+{
+  "cardNumber": "2222405343248112",
+  "expiryMonth": 4,
+  "expiryYear": 2027,
+  "currency": "USD",
+  "amount": 500,
+  "cvv": "456"
+}
+
+### 3. Rejected payment — business rule violation (blocked BIN)
+POST {{baseUrl}}/api/v1/Payments
+Content-Type: application/json
+X-API-Key: {{apiKey}}
+Idempotency-Key: {{$guid}}
+
+{
+  "cardNumber": "1234565343248112",
+  "expiryMonth": 4,
+  "expiryYear": 2027,
+  "currency": "USD",
+  "amount": 500,
+  "cvv": "456"
+}
+
+### ============================================================
+### GET /api/v1/payments/{id} — Retrieve a Payment
+### ============================================================
+
+### 11. Get an existing payment by ID
+# Replace <payment-id> with the `id` returned from a POST request above
+GET {{baseUrl}}/api/v1/Payments/<payment-id>
+X-API-Key: {{apiKey}}
+
+### 12. Not Found — payment ID does not exist
+GET {{baseUrl}}/api/v1/Payments/00000000-0000-0000-0000-000000000000
+X-API-Key: {{apiKey}}
+
+### 13. Unauthorized — missing API key
+GET {{baseUrl}}/api/v1/Payments/00000000-0000-0000-0000-000000000000
